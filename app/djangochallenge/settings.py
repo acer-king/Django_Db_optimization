@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
@@ -33,6 +33,13 @@ MIDDLEWARE_CLASSES = (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:8000',
+    }
+}
+
 ROOT_URLCONF = 'djangochallenge.urls'
 WSGI_APPLICATION = 'djangochallenge.wsgi.application'
 
@@ -51,3 +58,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "bootstrap")
+]

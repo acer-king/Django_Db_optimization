@@ -1,9 +1,10 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
+from six import python_2_unicode_compatible
+from django.db.models import Sum
 
 
 class Company(models.Model):
@@ -11,17 +12,15 @@ class Company(models.Model):
     bic = models.CharField(max_length=150, blank=True)
 
     def get_order_count(self):
-        orders = 0
-        for order in self.orders.all():
-            orders += 1
-        return orders
+        result = self.orders.all().count()
+        return result
 
     def get_order_sum(self):
-        total_sum = 0
-        for contact in self.contacts.all():
-            for order in contact.orders.all():
-                total_sum += order.total
-        return total_sum
+        result = self.orders.all().aggregate(Sum('total'))
+        return result['total__sum']
+
+    def __str__(self):
+        return "%s" % self.name
 
 
 class Contact(models.Model):
@@ -32,18 +31,21 @@ class Contact(models.Model):
     email = models.EmailField()
 
     def get_order_count(self):
-        orders = 0
-        for order in self.orders.all():
-            orders += 1
-        return orders
+        result = self.orders.all().count()
+        return result
+
+    def __str__(self):
+        return self.first_name+" " + self.last_name
 
 
 @python_2_unicode_compatible
 class Order(models.Model):
     order_number = models.CharField(max_length=150)
-    company = models.ForeignKey(Company, related_name="orders")
-    contact = models.ForeignKey(Contact, related_name="orders")
-    total = models.DecimalField(max_digits=18, decimal_places=9)
+    company = models.ForeignKey(
+        Company, related_name="orders", on_delete=models.CASCADE)
+    contact = models.ForeignKey(
+        Contact, related_name="orders", on_delete=models.CASCADE)
+    total = models.DecimalField(max_digits=18, decimal_places=9, db_index=True)
     order_date = models.DateTimeField(null=True, blank=True)
     # for internal use only
     added_date = models.DateTimeField(auto_now_add=True)
